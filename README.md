@@ -1,2 +1,3 @@
 # stdfs
-std::filesystem in Python
+
+C++ [std::filesystem](https://en.cppreference.com/w/cpp/filesystem) Python library.
