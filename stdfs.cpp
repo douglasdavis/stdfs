@@ -32,8 +32,8 @@ PYBIND11_MODULE(stdfs, m) {
     .def(py::self / std::string())
     .def("c_str", [](const fs::path& p) { return p.c_str(); })
     .def("native", [](const fs::path& p) { return p.native(); })
-    .def("root_name", [](const fs::path& p) { return p.root_name(); })
     .def("root_directory", [](const fs::path& p) { return p.root_directory(); })
+    .def("root_name", [](const fs::path& p) { return p.root_name(); })
     .def("root_path", [](const fs::path& p) { return p.root_path(); });
 
   // std::filesystem::directory_entry binding
@@ -48,10 +48,10 @@ PYBIND11_MODULE(stdfs, m) {
       ss << "directory_entry(\"" << de.path().string() << "\")";
       return ss.str();
     })
-    .def("path", [](const fs::directory_entry& de) { return de.path(); })
     .def("exists", [](const fs::directory_entry& de) { return de.exists(); })
     .def("is_block_file", [](const fs::directory_entry& de) { return de.is_block_file(); })
-    .def("is_character_file", [](const fs::directory_entry& de) { return de.is_character_file(); });
+    .def("is_character_file", [](const fs::directory_entry& de) { return de.is_character_file(); })
+    .def("path", [](const fs::directory_entry& de) { return de.path(); });
 
   // free function bindings
 
@@ -61,8 +61,8 @@ PYBIND11_MODULE(stdfs, m) {
   m.def("create_directories", [](const fs::path& p) { return fs::create_directories(p); });
   m.def("current_path", []() { return fs::current_path(); });
   m.def("equivalent", [](const fs::path& p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
-  m.def("file_size", [](const fs::path& p) { return fs::file_size(p); });
   m.def("exists", [](const fs::path& p) { return fs::exists(p); });
+  m.def("file_size", [](const fs::path& p) { return fs::file_size(p); });
   m.def("proximate", [](const fs::path& p) { return fs::proximate(p); });
   m.def("relative", [](const fs::path& p) { return fs::relative(p); });
   m.def("temp_directory_path", []() { return fs::temp_directory_path(); });
