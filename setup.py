@@ -27,7 +27,6 @@ def has_flag(flag, compiler=None):
 def get_compile_flags():
     if not has_flag("-std=c++17"):
         raise RuntimeError("C++17 required")
-    """get the compile flags"""
     cflags = ["-Wall", "-Wextra"]
     debug_env = os.getenv("PYGRAM11_DEBUG")
     if debug_env is None:
