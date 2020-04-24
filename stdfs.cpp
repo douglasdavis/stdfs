@@ -6,11 +6,27 @@
 #include <sstream>
 
 namespace py = pybind11;
-namespace fs = std::filesystem;
+
+#define REGISTER_FREE_FUNC_PATH_OR_STR(NAME)                            \
+  do {                                                                  \
+    m.def(#NAME, [](const fs::path& p) { return fs::NAME(p); });        \
+    m.def(#NAME, [](const std::string& s) { return fs::NAME(s); });     \
+  } while (0)
 
 
 PYBIND11_MODULE(stdfs, m) {
   m.doc() = "std::filesystem in Python";
+
+  namespace fs = std::filesystem;
+
+  // std::filesystem::file_type binding
+
+  py::enum_<fs::file_type>(m, "file_type")
+    .value("none", fs::file_type::none)
+    .value("not_found", fs::file_type::not_found)
+    .value("regular", fs::file_type::regular)
+    .value("directory", fs::file_type::directory)
+    .export_values();
 
   // std::filesystem::path binding
 
@@ -54,24 +70,38 @@ PYBIND11_MODULE(stdfs, m) {
     .def("path", [](const fs::directory_entry& de) { return de.path(); });
 
   // free function bindings
-
-  m.def("absolute", [](const fs::path& p) { return fs::absolute(p); });
-  m.def("canonical", [](const fs::path& p) { return fs::canonical(p); });
-  m.def("create_directory", [](const fs::path& p) { return fs::create_directory(p); });
-  m.def("create_directories", [](const fs::path& p) { return fs::create_directories(p); });
   m.def("current_path", []() { return fs::current_path(); });
-  m.def("equivalent", [](const fs::path& p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
-  m.def("exists", [](const fs::path& p) { return fs::exists(p); });
-  m.def("file_size", [](const fs::path& p) { return fs::file_size(p); });
-  m.def("proximate", [](const fs::path& p) { return fs::proximate(p); });
-  m.def("relative", [](const fs::path& p) { return fs::relative(p); });
   m.def("temp_directory_path", []() { return fs::temp_directory_path(); });
-  m.def("weakly_canonical", [](const fs::path& p) { return fs::weakly_canonical(p); });
+  m.def("equivalent", [](const fs::path& p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
+  m.def("equivalent", [](const fs::path& p1, const std::string& p2) { return fs::equivalent(p1, p2); });
+  m.def("equivalent", [](const std::string& p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
+  m.def("equivalent", [](const std::string& p1, const std::string& p2) { return fs::equivalent(p1, p2); });
+
+  REGISTER_FREE_FUNC_PATH_OR_STR(absolute);
+  REGISTER_FREE_FUNC_PATH_OR_STR(canonical);
+  REGISTER_FREE_FUNC_PATH_OR_STR(create_directory);
+  REGISTER_FREE_FUNC_PATH_OR_STR(create_directories);
+  REGISTER_FREE_FUNC_PATH_OR_STR(exists);
+  REGISTER_FREE_FUNC_PATH_OR_STR(file_size);
+  REGISTER_FREE_FUNC_PATH_OR_STR(proximate);
+  REGISTER_FREE_FUNC_PATH_OR_STR(relative);
+  REGISTER_FREE_FUNC_PATH_OR_STR(weakly_canonical);
+
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_block_file);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_character_file);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_directory);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_empty);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_fifo);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_other);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_regular_file);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_socket);
+  REGISTER_FREE_FUNC_PATH_OR_STR(is_symlink);
 
   // iterator bindings
 
   py::class_<fs::directory_iterator>(m, "directory_iterator")
     .def(py::init<const fs::path&>())
+    .def(py::init<const std::string&>())
     .def("__iter__", [](const fs::directory_iterator& di) {
       return py::make_iterator(fs::begin(di), fs::end(di));
     }, py::keep_alive<0, 1>());
