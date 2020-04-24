@@ -76,7 +76,7 @@ def get_readme():
 
 setup(
     name="stdfs",
-    version="0.0.1",
+    version="0.1",
     author="Doug Davis",
     author_email="ddavis@ddavis.io",
     url="https://github.com/douglasdavis/stdfs",

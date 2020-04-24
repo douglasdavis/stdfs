@@ -19,6 +19,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(stdfs, m) {
   m.doc() = "std::filesystem in Python";
+  m.attr("__version__") = "0.1";
 
   namespace fs = std::filesystem;
 

@@ -14,14 +14,15 @@
 # import sys
 # sys.path.insert(0, os.path.abspath("."))
 
+import stdfs
 
 # -- Project information -----------------------------------------------------
 
 project = "stdfs"
 copyright = "2020, Doug Davis"
 author = "Doug Davis"
-version = "0.1"
-release = "0.1"
+version = stdfs.__version__
+release = stdfs.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -33,6 +34,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
+    "pallets_sphinx_themes",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,7 +51,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
+html_theme = "click"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
