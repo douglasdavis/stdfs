@@ -32,9 +32,7 @@ PYBIND11_MODULE(stdfs, m) {
 
   py::class_<fs::path>(m, "path")
     .def(py::init<const std::string&>())
-    .def("__str__", [](const fs::path& p) {
-      return p.string();
-    })
+    .def("__str__", [](const fs::path& p) { return p.string(); })
     .def("__repr__", [](const fs::path& p) {
       std::stringstream ss;
       ss << "path(\"" << p.string() << "\")";
@@ -50,7 +48,14 @@ PYBIND11_MODULE(stdfs, m) {
     .def("native", [](const fs::path& p) { return p.native(); })
     .def("root_directory", [](const fs::path& p) { return p.root_directory(); })
     .def("root_name", [](const fs::path& p) { return p.root_name(); })
-    .def("root_path", [](const fs::path& p) { return p.root_path(); });
+    .def("root_path", [](const fs::path& p) { return p.root_path(); })
+
+    .def("clear", [](fs::path& p) { p.clear(); })
+    .def("make_preferred", [](fs::path& p) { return p.make_preferred(); })
+    .def("remove_filename", [](fs::path& p) { return p.remove_filename(); })
+    .def("replace_filename", [](fs::path& p, const fs::path& r) { return p.replace_filename(r); })
+    .def("replace_filename", [](fs::path& p, const std::string& r) { return p.replace_filename(r); });
+
 
   // std::filesystem::directory_entry binding
 
