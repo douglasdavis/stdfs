@@ -11,8 +11,10 @@ from setuptools import setup
 from setuptools.extension import Extension
 
 
-def has_flag(compiler, flag):
+def has_flag(flag, compiler=None):
     """check if compiler has compatibility with the flag"""
+    if compiler is None:
+        compiler = setuptools.distutils.ccompiler.new_compiler()
     with tempfile.NamedTemporaryFile("w", suffix=".cpp") as f:
         f.write("int main (int argc, char** argv) { return 0; }")
         try:
@@ -23,6 +25,8 @@ def has_flag(compiler, flag):
 
 
 def get_compile_flags():
+    if not has_flag("-std=c++17"):
+        raise RuntimeError("C++17 required")
     """get the compile flags"""
     cflags = ["-Wall", "-Wextra"]
     debug_env = os.getenv("PYGRAM11_DEBUG")
@@ -43,7 +47,6 @@ def get_link_flags():
     if sys.platform.startswith("darwin"):
         if envPREFIX is not None:
             lflags += ["-Wl,-rpath,{}/lib".format(envPREFIX)]
-        lflags += ["-lc++fs"]
     else:
         lflags += ["-lstdc++fs"]
     return lflags
@@ -82,8 +85,6 @@ setup(
     long_description_content_type="text/markdown",
     ext_modules=get_extensions(),
     python_requires=">=3.6",
-    test_suite="tests",
-    tests_require=["pytest>=4.0"],
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3 :: Only",
@@ -91,10 +92,9 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: C++",
-        "Operating System :: Unix",
-        "Operating System :: MacOS",
-        "Operating System :: POSIX",
-        "Operating System :: POSIX :: Linux",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 2 - Pre-Alpha",
+        "License :: OSI Approved :: BSD License",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Utilities",
     ],
 )

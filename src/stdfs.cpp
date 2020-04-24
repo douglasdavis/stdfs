@@ -2,7 +2,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <filesystem>
-#include <string>
+#include <string_view>
 #include <sstream>
 
 namespace py = pybind11;
@@ -10,7 +10,10 @@ namespace py = pybind11;
 #define REGISTER_FREE_FUNC_PATH_OR_STR(NAME)                            \
   do {                                                                  \
     m.def(#NAME, [](const fs::path& p) { return fs::NAME(p); });        \
-    m.def(#NAME, [](const std::string& s) { return fs::NAME(s); });     \
+    m.def(#NAME, [](std::string_view s) { return fs::NAME(s); });       \
+    m.def(#NAME, [](const fs::directory_entry& d) {                     \
+      return fs::NAME(d.path());                                        \
+    });                                                                 \
   } while (0)
 
 
@@ -31,7 +34,8 @@ PYBIND11_MODULE(stdfs, m) {
   // std::filesystem::path binding
 
   py::class_<fs::path>(m, "path")
-    .def(py::init<const std::string&>())
+    .def(py::init<std::string_view>())
+    .def(py::init<const fs::path&>())
     .def("__str__", [](const fs::path& p) { return p.string(); })
     .def("__repr__", [](const fs::path& p) {
       std::stringstream ss;
@@ -54,7 +58,7 @@ PYBIND11_MODULE(stdfs, m) {
     .def("make_preferred", [](fs::path& p) { return p.make_preferred(); })
     .def("remove_filename", [](fs::path& p) { return p.remove_filename(); })
     .def("replace_filename", [](fs::path& p, const fs::path& r) { return p.replace_filename(r); })
-    .def("replace_filename", [](fs::path& p, const std::string& r) { return p.replace_filename(r); });
+    .def("replace_filename", [](fs::path& p, const std::string_view& r) { return p.replace_filename(r); });
 
 
   // std::filesystem::directory_entry binding
@@ -78,10 +82,9 @@ PYBIND11_MODULE(stdfs, m) {
   m.def("current_path", []() { return fs::current_path(); });
   m.def("temp_directory_path", []() { return fs::temp_directory_path(); });
   m.def("equivalent", [](const fs::path& p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
-  m.def("equivalent", [](const fs::path& p1, const std::string& p2) { return fs::equivalent(p1, p2); });
-  m.def("equivalent", [](const std::string& p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
-  m.def("equivalent", [](const std::string& p1, const std::string& p2) { return fs::equivalent(p1, p2); });
-
+  m.def("equivalent", [](const fs::path& p1, std::string_view p2) { return fs::equivalent(p1, p2); });
+  m.def("equivalent", [](std::string_view p1, const fs::path& p2) { return fs::equivalent(p1, p2); });
+  m.def("equivalent", [](std::string_view p1, std::string_view p2) { return fs::equivalent(p1, p2); });
   REGISTER_FREE_FUNC_PATH_OR_STR(absolute);
   REGISTER_FREE_FUNC_PATH_OR_STR(canonical);
   REGISTER_FREE_FUNC_PATH_OR_STR(create_directory);
@@ -91,7 +94,6 @@ PYBIND11_MODULE(stdfs, m) {
   REGISTER_FREE_FUNC_PATH_OR_STR(proximate);
   REGISTER_FREE_FUNC_PATH_OR_STR(relative);
   REGISTER_FREE_FUNC_PATH_OR_STR(weakly_canonical);
-
   REGISTER_FREE_FUNC_PATH_OR_STR(is_block_file);
   REGISTER_FREE_FUNC_PATH_OR_STR(is_character_file);
   REGISTER_FREE_FUNC_PATH_OR_STR(is_directory);
@@ -106,7 +108,7 @@ PYBIND11_MODULE(stdfs, m) {
 
   py::class_<fs::directory_iterator>(m, "directory_iterator")
     .def(py::init<const fs::path&>())
-    .def(py::init<const std::string&>())
+    .def(py::init<std::string_view>())
     .def("__iter__", [](const fs::directory_iterator& di) {
       return py::make_iterator(fs::begin(di), fs::end(di));
     }, py::keep_alive<0, 1>());
