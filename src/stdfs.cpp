@@ -25,22 +25,27 @@ PYBIND11_MODULE(stdfs, m) {
 
   // std::filesystem::file_type binding
 
-  py::enum_<fs::file_type>(m, "FileType")
+  py::enum_<fs::file_type>(m, "file_type")
     .value("none", fs::file_type::none)
     .value("not_found", fs::file_type::not_found)
     .value("regular", fs::file_type::regular)
     .value("directory", fs::file_type::directory)
     .export_values();
 
+  py::enum_<fs::copy_options>(m, "copy_options")
+    .value("none", fs::copy_options::none)
+    .value("skip_existing", fs::copy_options::skip_existing)
+    .export_values();
+
   // std::filesystem::path binding
 
-  py::class_<fs::path>(m, "Path")
+  py::class_<fs::path>(m, "path")
     .def(py::init<std::string_view>())
     .def(py::init<const fs::path&>())
     .def("__str__", [](const fs::path& p) { return p.string(); })
     .def("__repr__", [](const fs::path& p) {
       std::stringstream ss;
-      ss << "Path(\"" << p.string() << "\")";
+      ss << "path(\"" << p.string() << "\")";
       return ss.str();
     })
     .def("__iter__", [](const fs::path& p) {
@@ -54,24 +59,41 @@ PYBIND11_MODULE(stdfs, m) {
     .def("root_directory", [](const fs::path& p) { return p.root_directory(); })
     .def("root_name", [](const fs::path& p) { return p.root_name(); })
     .def("root_path", [](const fs::path& p) { return p.root_path(); })
+    .def("relative_path", [](const fs::path& p) { return p.relative_path(); })
+    .def("parent_path", [](const fs::path& p) { return p.parent_path(); })
+    .def("filename", [](const fs::path& p) { return p.filename(); })
+    .def("stem", [](const fs::path& p) { return p.stem(); })
+    .def("extension", [](const fs::path& p) { return p.extension(); })
+    .def("empty", [](const fs::path& p) { return p.empty(); })
 
     .def("clear", [](fs::path& p) { p.clear(); })
     .def("make_preferred", [](fs::path& p) { return p.make_preferred(); })
     .def("remove_filename", [](fs::path& p) { return p.remove_filename(); })
     .def("replace_filename", [](fs::path& p, const fs::path& r) { return p.replace_filename(r); })
-    .def("replace_filename", [](fs::path& p, const std::string_view& r) { return p.replace_filename(r); });
+    .def("replace_filename", [](fs::path& p, const std::string_view& r) { return p.replace_filename(r); })
 
+    .def("has_root_path", [](const fs::path& p) { return p.has_root_path(); })
+    .def("has_root_name", [](const fs::path& p) { return p.has_root_name(); })
+    .def("has_root_directory", [](const fs::path& p) { return p.has_root_directory(); })
+    .def("has_relative_path", [](const fs::path& p) { return p.has_relative_path(); })
+    .def("has_parent_path", [](const fs::path& p) { return p.has_parent_path(); })
+    .def("has_filename", [](const fs::path& p) { return p.has_filename(); })
+    .def("has_stem", [](const fs::path& p) { return p.has_stem(); })
+    .def("has_extension", [](const fs::path& p) { return p.has_extension(); })
+
+    .def("is_absolute", [](const fs::path& p) { return p.is_absolute(); })
+    .def("is_relative", [](const fs::path& p) { return p.is_relative(); });
 
   // std::filesystem::directory_entry binding
 
-  py::class_<fs::directory_entry>(m, "DirectoryEntry")
+  py::class_<fs::directory_entry>(m, "directory_entry")
     .def(py::init<const fs::path&>())
     .def("__str__", [](fs::directory_entry& de) {
       return de.path().string();
     })
     .def("__repr__", [](fs::directory_entry& de) {
       std::stringstream ss;
-      ss << "DirectoryEntry(\"" << de.path().string() << "\")";
+      ss << "directory_entry(\"" << de.path().string() << "\")";
       return ss.str();
     })
     .def("exists", [](const fs::directory_entry& de) { return de.exists(); })
@@ -107,14 +129,14 @@ PYBIND11_MODULE(stdfs, m) {
 
   // iterator bindings
 
-  py::class_<fs::directory_iterator>(m, "DirecoryIterator")
+  py::class_<fs::directory_iterator>(m, "direcory_iterator")
     .def(py::init<const fs::path&>())
     .def(py::init<std::string_view>())
     .def("__iter__", [](const fs::directory_iterator& di) {
       return py::make_iterator(fs::begin(di), fs::end(di));
     }, py::keep_alive<0, 1>());
 
-  py::class_<fs::recursive_directory_iterator>(m, "RecursiveDirectoryIterator")
+  py::class_<fs::recursive_directory_iterator>(m, "recursive_directory_iterator")
     .def(py::init<const fs::path&>())
     .def("__iter__", [](const fs::recursive_directory_iterator& rdi) {
       return py::make_iterator(fs::begin(rdi), fs::end(rdi));
