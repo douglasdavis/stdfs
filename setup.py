@@ -1,99 +1,35 @@
-import glob
 import os
-import re
 import pathlib
-import subprocess
 import sys
-import tempfile
 
-import setuptools
 from setuptools import setup
-from setuptools.extension import Extension
+from distutils.sysconfig import get_config_vars
+from pybind11.setup_helpers import Pybind11Extension
 
 
-def has_flag(flag, compiler=None):
-    """check if compiler has compatibility with the flag"""
-    if compiler is None:
-        compiler = setuptools.distutils.ccompiler.new_compiler()
-    with tempfile.NamedTemporaryFile("w", suffix=".cpp") as f:
-        f.write("int main (int argc, char** argv) { return 0; }")
-        try:
-            compiler.compile([f.name], extra_postargs=[flag])
-        except setuptools.distutils.errors.CompileError:
-            return False
-    return True
-
-
-def get_compile_flags():
-    if not has_flag("-std=c++17"):
-        raise RuntimeError("C++17 required")
-    cflags = ["-Wall", "-Wextra"]
-    debug_env = os.getenv("PYGRAM11_DEBUG")
-    if debug_env is None:
-        cflags += ["-g0"]
-    else:
-        cflags += ["-g"]
-    if sys.platform.startswith("darwin"):
-        cflags += ["-std=c++17", "-fvisibility=hidden", "-stdlib=libc++"]
-    else:
-        cflags += ["-std=c++17", "-fvisibility=hidden"]
-    return cflags
-
-
-def get_link_flags():
-    envPREFIX = os.getenv("PREFIX")
-    lflags = []
-    if sys.platform.startswith("darwin"):
-        if envPREFIX is not None:
-            lflags += ["-Wl,-rpath,{}/lib".format(envPREFIX)]
-    else:
-        lflags += ["-lstdc++fs"]
-    return lflags
+def get_macOS_deployment_target():
+        macos_target = get_config_vars()["MACOSX_DEPLOYMENT_TARGET"]
+        macos_target = tuple(int(x) for x in macos_target.split("."))
+        if macos_target < (10, 15):
+            macos_target = (10, 15)
+        return ".".join(str(x) for x in macos_target)
 
 
 def get_extensions():
-    cpp_cflags = get_compile_flags()
-    cpp_lflags = get_link_flags()
-    import pybind11
+    # on macOS std::filesystem requires Catalina (10.15) or later.
+    if sys.platform.startswith("darwin"):
+        os.environ["MACOSX_DEPLOYMENT_TARGET"] = get_macOS_deployment_target()
     return [
-        Extension(
+        Pybind11Extension(
             "stdfs",
             [os.path.join("src", "stdfs.cpp")],
-            language="c++",
-            include_dirs=[pybind11.get_include()],
-            extra_compile_args=cpp_cflags,
-            extra_link_args=cpp_lflags,
+            cxx_std=17,
         ),
     ]
 
 
-def get_readme():
-    project_root = pathlib.PosixPath(__file__).parent
-    with (project_root / "README.md").open("rb") as f:
-        return f.read().decode("utf-8")
-
-
 setup(
-    name="stdfs",
     version="0.1",
-    author="Doug Davis",
-    author_email="ddavis@ddavis.io",
-    url="https://github.com/douglasdavis/stdfs",
-    description="C++ std::filesystem API in Python",
-    long_description=get_readme(),
-    long_description_content_type="text/markdown",
     ext_modules=get_extensions(),
-    python_requires=">=3.6",
     zip_safe=False,
-    classifiers=[
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: C++",
-        "Development Status :: 2 - Pre-Alpha",
-        "License :: OSI Approved :: BSD License",
-        "Topic :: Software Development :: Libraries",
-        "Topic :: Utilities",
-    ],
 )
